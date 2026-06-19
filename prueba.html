@@ -5,55 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TaskBot Miner</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #0a0a0a;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-  }
-  .container {
-    text-align: center;
-    padding: 30px 20px;
-  }
-  .icon { font-size: 60px; margin-bottom: 20px; }
-  h1 { font-size: 22px; margin-bottom: 10px; color: #f0c040; }
-  p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
-  .timer-box {
-    background: #1a1a1a;
-    border: 2px solid #f0c040;
-    border-radius: 16px;
-    padding: 20px 40px;
-    margin-bottom: 30px;
-    display: inline-block;
-  }
-  .timer {
-    font-size: 48px;
-    font-weight: bold;
-    color: #f0c040;
-  }
-  .timer-label { font-size: 12px; color: #888; margin-top: 4px; }
-  .btn {
-    display: inline-block;
-    background: #f0c040;
-    color: #000;
-    font-weight: bold;
-    font-size: 16px;
-    padding: 14px 32px;
-    border-radius: 12px;
-    text-decoration: none;
-    opacity: 0.4;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  .btn.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-  .note { font-size: 12px; color: #666; margin-top: 16px; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.container { text-align: center; padding: 30px 20px; }
+.icon { font-size: 60px; margin-bottom: 20px; }
+h1 { font-size: 22px; margin-bottom: 10px; color: #f0c040; }
+p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
+.timer-box {
+  background: #1a1a1a;
+  border: 2px solid #f0c040;
+  border-radius: 16px;
+  padding: 20px 40px;
+  margin-bottom: 30px;
+  display: inline-block;
+}
+.timer { font-size: 48px; font-weight: bold; color: #f0c040; }
+.timer-label { font-size: 12px; color: #888; margin-top: 4px; }
+.btn {
+  display: inline-block;
+  background: #f0c040;
+  color: #000;
+  font-weight: bold;
+  font-size: 16px;
+  padding: 14px 32px;
+  border-radius: 12px;
+  text-decoration: none;
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  border: none;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+}
+.btn.active { opacity: 1; pointer-events: all; }
+.note { font-size: 12px; color: #666; margin-top: 16px; }
 </style>
 </head>
 <body>
@@ -61,40 +54,59 @@
   <div class="icon">⛏️</div>
   <h1>TaskBot Miner</h1>
   <p>Please wait while your reward is being processed...</p>
-
   <div class="timer-box">
     <div class="timer" id="countdown">10</div>
     <div class="timer-label">seconds</div>
   </div>
-
   <br>
-  <a href="tg://t.me/taskbotminer_bot" class="btn" id="returnBtn">
-    🔙 Back to the Bot
-  </a>
+  <button class="btn" id="returnBtn" onclick="goToBot()">🔙 Back to the Bot</button>
   <div class="note" id="note">The button will be activated when the timer runs out</div>
 </div>
 
 <script>
-  // Redirige al smartlink inmediatamente en nueva pestaña
-  window.open("https://omg10.com/4/11092522", "_blank");
+// Redirige al smartlink inmediatamente en nueva pestaña
+window.open("https://omg10.com/4/11092522", "_blank");
 
-  // Cuenta regresiva
-  let seconds = 10;
-  const countdown = document.getElementById("countdown");
-  const btn = document.getElementById("returnBtn");
-  const note = document.getElementById("note");
+// Cuenta regresiva
+let seconds = 10;
+const countdown = document.getElementById("countdown");
+const btn = document.getElementById("returnBtn");
+const note = document.getElementById("note");
 
-  const timer = setInterval(() => {
-    seconds--;
-    countdown.textContent = seconds;
+const timer = setInterval(() => {
+  seconds--;
+  countdown.textContent = seconds;
+  if (seconds <= 0) {
+    clearInterval(timer);
+    countdown.textContent = "✓";
+    btn.classList.add("active");
+    note.textContent = "¡Reward ready! Go back to the bot.";
+  }
+}, 1000);
 
-    if (seconds <= 0) {
-      clearInterval(timer);
-      countdown.textContent = "✓";
-      btn.classList.add("active");
-      note.textContent = "¡Reward ready! Go back to the bot.";
+// Intenta abrir la app nativa de Telegram (tg://) y si no se logra
+// (la página sigue visible tras el timeout), cae a la versión web.
+function goToBot() {
+  const TG_SCHEME = "tg://resolve?domain=taskbotminer_bot?start=mb2083";
+  const TG_WEB = "https://t.me/taskbotminer_bot?start=mb2083";
+  let appOpened = false;
+
+  function onVisibilityChange() {
+    if (document.hidden) appOpened = true;
+  }
+  document.addEventListener("visibilitychange", onVisibilityChange);
+
+  // Disparo del deep link (debe ocurrir dentro del gesto de clic
+  // del usuario, por eso va en el handler del botón)
+  window.location.href = TG_SCHEME;
+
+  setTimeout(() => {
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+    if (!appOpened) {
+      window.location.href = TG_WEB;
     }
-  }, 1000);
+  }, 1500);
+}
 </script>
 </body>
 </html>
