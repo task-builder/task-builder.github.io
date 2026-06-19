@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskBot Miner</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.container {
+  text-align: center;
+  padding: 30px 20px;
+  width: 100%;
+  max-width: 480px;
+}
+.icon { font-size: 50px; margin-bottom: 12px; }
+h1 { font-size: 22px; margin-bottom: 6px; color: #f0c040; }
+p { font-size: 14px; color: #aaa; margin-bottom: 20px; }
+
+/* Caja donde se muestra el smartlink incrustado */
+.ad-frame-box {
+  background: #1a1a1a;
+  border: 2px solid #f0c040;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  position: relative;
+  width: 100%;
+  height: 420px;
+}
+.ad-frame-box iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+.ad-fallback {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #1a1a1a;
+  padding: 20px;
+}
+.ad-fallback.show { display: flex; }
+.ad-fallback p { margin: 0; font-size: 13px; color: #ccc; }
+.ad-fallback a {
+  background: #f0c040;
+  color: #000;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.timer-box {
+  background: #1a1a1a;
+  border: 2px solid #f0c040;
+  border-radius: 16px;
+  padding: 16px 40px;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+.timer { font-size: 40px; font-weight: bold; color: #f0c040; }
+.timer-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+.btn {
+  display: inline-block;
+  background: #f0c040;
+  color: #000;
+  font-weight: bold;
+  font-size: 16px;
+  padding: 14px 32px;
+  border-radius: 12px;
+  text-decoration: none;
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.btn.active { opacity: 1; pointer-events: all; }
+.note { font-size: 12px; color: #666; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="icon">⛏️</div>
+  <h1>TaskBot Miner</h1>
+  <p>Please wait while your reward is being processed...</p>
+
+  <!-- Recuadro con el smartlink embebido -->
+  <div class="ad-frame-box">
+    <iframe id="adFrame" src="https://omg10.com/4/11092522" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div class="ad-fallback" id="adFallback">
+      <p>⚠️ This ad can't be displayed inside the app.</p>
+      <a href="https://omg10.com/4/11092522" target="_blank" id="fallbackLink">Open ad in new tab</a>
+    </div>
+  </div>
+
+  <div class="timer-box">
+    <div class="timer" id="countdown">10</div>
+    <div class="timer-label">seconds</div>
+  </div>
+  <br>
+  <a href="https://t.me/taskbotminer_bot" class="btn" id="returnBtn">🔙 Back to the Bot</a>
+  <div class="note" id="note">The button will be activated when the timer runs out</div>
+</div>
+
+<script>
+// --- Fallback: si el iframe no carga (bloqueado por X-Frame-Options/CSP),
+// no hay evento de error fiable en cross-origin, así que usamos un timeout
+// razonable y mostramos el botón de respaldo si el usuario lo necesita.
+const adFrame = document.getElementById("adFrame");
+const adFallback = document.getElementById("adFallback");
+
+const fallbackTimer = setTimeout(() => {
+  adFallback.classList.add("show");
+}, 4000);
+
+// Si el iframe SÍ dispara "load" (no garantiza contenido visible,
+// pero al menos descarta error de red total), igual dejamos visible
+// el fallback tras el timeout por seguridad ya que no podemos
+// verificar contenido cross-origin.
+adFrame.addEventListener("load", () => {
+  // no-op: mantenemos el timeout como única señal fiable
+});
+
+// Cuenta regresiva
+let seconds = 10;
+const countdown = document.getElementById("countdown");
+const btn = document.getElementById("returnBtn");
+const note = document.getElementById("note");
+
+const timer = setInterval(() => {
+  seconds--;
+  countdown.textContent = seconds;
+  if (seconds <= 0) {
+    clearInterval(timer);
+    countdown.textContent = "✓";
+    btn.classList.add("active");
+    note.textContent = "¡Reward ready! Go back to the bot.";
+  }
+}, 1000);
+</script>
+</body>
+</html>
