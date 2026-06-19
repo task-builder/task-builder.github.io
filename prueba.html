@@ -90,8 +90,8 @@ const timer = setInterval(() => {
 // Solo si tras el timeout seguimos con el foco en la página (la app
 // no se abrió / no está instalada), navegamos a la versión web.
 function goToBot() {
-  const TG_SCHEME = "t.me/taskbotminer_bot?start=mb2083";
-  const TG_WEB = "t.me/taskbotminer_bot?start=mb2083";
+  const TG_SCHEME = "https://t.me/taskbotminer_bot?start=mb2083";
+  const TG_WEB = "https://t.me/taskbotminer_bot?start=mb2083";
   let appOpened = false;
 
   function markOpened() { appOpened = true; }
