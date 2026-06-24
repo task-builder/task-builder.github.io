@@ -62,17 +62,14 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   <button class="btn" id="returnBtn" onclick="goToBot()">🔙 Back to the Bot</button>
   <div class="note" id="note">The button will be activated when the timer runs out</div>
 </div>
-
 <script>
 // Redirige al smartlink inmediatamente en nueva pestaña
 window.open("https://omg10.com/4/11092522", "_blank");
-
 // Cuenta regresiva
 let seconds = 10;
 const countdown = document.getElementById("countdown");
 const btn = document.getElementById("returnBtn");
 const note = document.getElementById("note");
-
 const timer = setInterval(() => {
   seconds--;
   countdown.textContent = seconds;
@@ -84,28 +81,37 @@ const timer = setInterval(() => {
   }
 }, 1000);
 
+// Bandera para que el botón solo reaccione una vez por carga de página.
+let alreadyClicked = false;
+
 // Intenta abrir la app nativa de Telegram (tg://). Si detectamos que
 // la ventana perdió el foco (señal de que la app de escritorio se
 // abrió), NO navegamos al fallback web y dejamos la pestaña como está.
 // Solo si tras el timeout seguimos con el foco en la página (la app
 // no se abrió / no está instalada), navegamos a la versión web.
 function goToBot() {
+  // Si ya se hizo clic una vez, no hace nada más hasta recargar la página.
+  if (alreadyClicked) return;
+  alreadyClicked = true;
+
+  // Deshabilita visual y funcionalmente el botón.
+  btn.disabled = true;
+  btn.classList.remove("active");
+  btn.style.opacity = "0.4";
+  btn.style.pointerEvents = "none";
+
   const TG_SCHEME = "tg://resolve?domain=taskbotminer_bot&start=mb2014";
   const TG_WEB = "https://t.me/taskbotminer_bot?start=mb2014";
   let appOpened = false;
-
   function markOpened() { appOpened = true; }
-
   // 'blur' es la señal más confiable en escritorio: se dispara cuando
   // la ventana del navegador pierde el foco al abrirse la app nativa.
   window.addEventListener("blur", markOpened, { once: true });
   document.addEventListener("visibilitychange", function onVis() {
     if (document.hidden) markOpened();
   }, { once: true });
-
   // Disparo del deep link (dentro del gesto de clic del usuario)
   window.location.href = TG_SCHEME;
-
   setTimeout(() => {
     window.removeEventListener("blur", markOpened);
     if (!appOpened) {
