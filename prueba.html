@@ -70,10 +70,33 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   background: #f0c040;
   color: #000;
 }
+.ad-close-widget.reopen {
+  cursor: pointer;
+  background: #1a1a1a;
+  border-color: #e05555;
+  color: #e05555;
+}
+.ad-warning {
+  position: fixed;
+  top: 68px;
+  right: 16px;
+  max-width: 220px;
+  background: #2a1414;
+  border: 1px solid #e05555;
+  color: #ffb3b3;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+  display: none;
+}
+.ad-warning.show { display: block; }
 </style>
 </head>
 <body>
-<div id="adCloseWidget" class="ad-close-widget" onclick="closeAdTab()">10</div>
+<div id="adCloseWidget" class="ad-close-widget" onclick="widgetClick()">10</div>
+<div id="adWarning" class="ad-warning"></div>
 <div class="container">
   <div class="icon">🎁</div>
   <h1>TaskBot Miner</h1>
@@ -87,35 +110,73 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   <div class="note" id="note">The button will be activated when the timer runs out</div>
 </div>
 <script>
-// Redirige al smartlink inmediatamente en nueva pestaña, guardando
-// la referencia para poder cerrarla después.
-const adWindow = window.open("https://omg10.com/4/11092522", "_blank");
+// URL del smartlink, reutilizada tanto para la apertura inicial
+// como para cuando el usuario tenga que reabrirlo.
+const SMARTLINK_URL = "https://omg10.com/4/11092522";
 
-// Temporizador de 10s para la pestaña del anuncio. Al llegar a 0,
-// el círculo se convierte en una "✕" que el usuario puede pulsar
-// para cerrar esa pestaña.
+// Estado del flujo del anuncio: "counting" (corriendo los 10s),
+// "needs_reopen" (lo cerraron antes de tiempo, hay que reabrir),
+// "closable" (completó los 10s, ya se puede cerrar).
+let adWindow = window.open(SMARTLINK_URL, "_blank");
 let adSeconds = 10;
+let adState = "counting";
+let adTimer = null;
+
 const adCloseWidget = document.getElementById("adCloseWidget");
-const adTimer = setInterval(() => {
+const adWarning = document.getElementById("adWarning");
+
+function tickAdTimer() {
+  // Si la pestaña del anuncio ya no existe (el usuario la cerró)
+  // y todavía no se completaron los 10 segundos:
+  if (adState === "counting" && adWindow && adWindow.closed) {
+    clearInterval(adTimer);
+    adState = "needs_reopen";
+    adCloseWidget.textContent = "↻";
+    adCloseWidget.classList.remove("closable");
+    adCloseWidget.classList.add("reopen");
+    adWarning.textContent = "Closed the ad before 10 seconds. Reopen it and wait for the full countdown.";
+    adWarning.classList.add("show");
+    return;
+  }
+
   adSeconds--;
   if (adSeconds <= 0) {
     clearInterval(adTimer);
+    adState = "closable";
     adCloseWidget.textContent = "✕";
     adCloseWidget.classList.add("closable");
   } else {
     adCloseWidget.textContent = adSeconds;
   }
-}, 1000);
-
-function closeAdTab() {
-  // Solo actúa si ya pasó el temporizador (tiene la clase "closable")
-  // y si la ventana del anuncio sigue abierta.
-  if (!adCloseWidget.classList.contains("closable")) return;
-  if (adWindow && !adWindow.closed) {
-    adWindow.close();
-  }
-  adCloseWidget.style.display = "none";
 }
+
+adTimer = setInterval(tickAdTimer, 1000);
+
+function widgetClick() {
+  if (adState === "closable") {
+    if (adWindow && !adWindow.closed) {
+      adWindow.close();
+    }
+    adCloseWidget.style.display = "none";
+    adWarning.classList.remove("show");
+    return;
+  }
+
+  if (adState === "needs_reopen") {
+    // Reabre el anuncio y reinicia el conteo completo desde 10.
+    adWindow = window.open(SMARTLINK_URL, "_blank");
+    adSeconds = 10;
+    adState = "counting";
+    adCloseWidget.textContent = adSeconds;
+    adCloseWidget.classList.remove("reopen");
+    adWarning.classList.remove("show");
+    adTimer = setInterval(tickAdTimer, 1000);
+    return;
+  }
+
+  // Si está en "counting", el clic todavía no hace nada.
+}
+
 // Cuenta regresiva
 let seconds = 10;
 const countdown = document.getElementById("countdown");
