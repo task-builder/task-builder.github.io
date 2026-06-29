@@ -60,7 +60,7 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   <h1>TaskBot Miner</h1>
   <p>Please wait while your reward is being processed...</p>
   <div class="timer-box" id="timerBox" onclick="timerBoxClick()">
-    <div class="timer" id="countdown">10</div>
+    <div class="timer" id="countdown">15</div>
     <div class="timer-label">seconds</div>
   </div>
   <br>
@@ -78,11 +78,11 @@ const btn = document.getElementById("returnBtn");
 const note = document.getElementById("note");
 
 // Estado único del flujo, controlado todo desde el cuadro central:
-// "counting"     -> contando los 10s con el anuncio abierto
+// "counting"     -> contando los 15s con el anuncio abierto
 // "needs_reopen" -> cerraron el anuncio antes de tiempo, hay que reabrir
-// "done"         -> completó los 10s, anuncio cerrado automáticamente
+// "done"         -> completó los 15s, anuncio cerrado automáticamente
 let state = "counting";
-let seconds = 10;
+let seconds = 15;
 let mainTimer = null;
 
 // Abre el smartlink en una pestaña nueva, guardando la referencia
@@ -91,7 +91,7 @@ let adWindow = window.open(SMARTLINK_URL, "_blank");
 
 function tick() {
   // Si el usuario cerró la pestaña del anuncio antes de completar
-  // los 10 segundos, se detiene el conteo y se exige reabrir.
+  // los 15 segundos, se detiene el conteo y se exige reabrir.
   if (state === "counting" && adWindow && adWindow.closed) {
     clearInterval(mainTimer);
     state = "needs_reopen";
@@ -124,7 +124,7 @@ function timerBoxClick() {
   if (state !== "needs_reopen") return;
 
   adWindow = window.open(SMARTLINK_URL, "_blank");
-  seconds = 10;
+  seconds = 15;
   state = "counting";
   countdown.textContent = seconds;
   timerBox.classList.remove("reopen");
