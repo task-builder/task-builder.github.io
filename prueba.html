@@ -169,9 +169,13 @@ function goToBot() {
       // No se detectó apertura de la app -> usamos la versión web
       window.location.href = TG_WEB;
     } else {
-      // La app se abrió: dejamos la pestaña en la página de espera
-      // (no navegamos a t.me) y mostramos un mensaje informativo.
-      note.textContent = "Opened in Telegram app. You can close this tab.";
+      // La app se abrió: ya no se necesita esta pestaña.
+      note.textContent = "Opened in Telegram app. Closing this tab...";
+      // Solo funciona si el navegador permite cerrar esta pestaña por
+      // script (depende de cómo se haya abierto). Si no lo permite,
+      // no pasa nada visible: la pestaña simplemente se queda abierta
+      // mostrando este mensaje.
+      window.close();
     }
   }, 1200);
 }
