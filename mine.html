@@ -26,6 +26,11 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   padding: 20px 40px;
   margin-bottom: 30px;
   display: inline-block;
+  transition: border-color 0.3s;
+}
+.timer-box.reopen {
+  border-color: #e05555;
+  cursor: pointer;
 }
 .timer { font-size: 48px; font-weight: bold; color: #f0c040; }
 .timer-label { font-size: 12px; color: #888; margin-top: 4px; }
@@ -54,8 +59,8 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   <div class="icon">⛏️🤖</div>
   <h1>TaskBot Miner</h1>
   <p>Please wait while your reward is being processed...</p>
-  <div class="timer-box">
-    <div class="timer" id="countdown">10</div>
+  <div class="timer-box" id="timerBox" onclick="timerBoxClick()">
+    <div class="timer" id="countdown">15</div>
     <div class="timer-label">seconds</div>
   </div>
   <br>
@@ -63,23 +68,69 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   <div class="note" id="note">The button will be activated when the timer runs out</div>
 </div>
 <script>
-// Redirige al smartlink inmediatamente en nueva pestaña
-window.open("https://omg10.com/4/11092522", "_blank");
-// Cuenta regresiva
-let seconds = 10;
+// URL del smartlink, reutilizada tanto para la apertura inicial
+// como para cuando el usuario tenga que reabrirlo.
+const SMARTLINK_URL = "https://omg10.com/4/11214476";
+
 const countdown = document.getElementById("countdown");
+const timerBox = document.getElementById("timerBox");
 const btn = document.getElementById("returnBtn");
 const note = document.getElementById("note");
-const timer = setInterval(() => {
+
+// Estado único del flujo, controlado todo desde el cuadro central:
+// "counting"     -> contando los 15s con el anuncio abierto
+// "needs_reopen" -> cerraron el anuncio antes de tiempo, hay que reabrir
+// "done"         -> completó los 15s, anuncio cerrado automáticamente
+let state = "counting";
+let seconds = 15;
+let mainTimer = null;
+
+// Abre el smartlink en una pestaña nueva, guardando la referencia
+// para poder revisar si sigue abierta y para cerrarla después.
+let adWindow = window.open(SMARTLINK_URL, "_blank");
+
+function tick() {
+  // Si el usuario cerró la pestaña del anuncio antes de completar
+  // los 15 segundos, se detiene el conteo y se exige reabrir.
+  if (state === "counting" && adWindow && adWindow.closed) {
+    clearInterval(mainTimer);
+    state = "needs_reopen";
+    countdown.textContent = "↻";
+    timerBox.classList.add("reopen");
+    note.textContent = "You closed the ad too early. You must wait 15 seconds. Tap the timer to reopen it.";
+    return;
+  }
+
   seconds--;
-  countdown.textContent = seconds;
   if (seconds <= 0) {
-    clearInterval(timer);
-    countdown.textContent = "✓";
+    clearInterval(mainTimer);
+    state = "done";
+    // Cierra automáticamente la pestaña del anuncio al completar el tiempo.
+    if (adWindow && !adWindow.closed) {
+      adWindow.close();
+    }
+    countdown.textContent = "✔️";
     btn.classList.add("active");
     note.textContent = "¡Reward ready! Go back to the bot.";
+  } else {
+    countdown.textContent = seconds;
   }
-}, 1000);
+}
+
+mainTimer = setInterval(tick, 1000);
+
+function timerBoxClick() {
+  // Solo reacciona al clic cuando hace falta reabrir el anuncio.
+  if (state !== "needs_reopen") return;
+
+  adWindow = window.open(SMARTLINK_URL, "_blank");
+  seconds = 15;
+  state = "counting";
+  countdown.textContent = seconds;
+  timerBox.classList.remove("reopen");
+  note.textContent = "The button will be activated when the timer runs out";
+  mainTimer = setInterval(tick, 1000);
+}
 
 // Bandera para que el botón solo reaccione una vez por carga de página.
 let alreadyClicked = false;
@@ -118,9 +169,13 @@ function goToBot() {
       // No se detectó apertura de la app -> usamos la versión web
       window.location.href = TG_WEB;
     } else {
-      // La app se abrió: dejamos la pestaña en la página de espera
-      // (no navegamos a t.me) y mostramos un mensaje informativo.
-      note.textContent = "Opened in Telegram app. You can close this tab.";
+      // La app se abrió: ya no se necesita esta pestaña.
+      note.textContent = "Opened in Telegram app. Closing this tab...";
+      // Solo funciona si el navegador permite cerrar esta pestaña por
+      // script (depende de cómo se haya abierto). Si no lo permite,
+      // no pasa nada visible: la pestaña simplemente se queda abierta
+      // mostrando este mensaje.
+      window.close();
     }
   }, 1200);
 }
