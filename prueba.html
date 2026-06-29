@@ -47,9 +47,33 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
 }
 .btn.active { opacity: 1; pointer-events: all; }
 .note { font-size: 12px; color: #666; margin-top: 16px; }
+.ad-close-widget {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: #1a1a1a;
+  border: 2px solid #f0c040;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #f0c040;
+  cursor: default;
+  user-select: none;
+}
+.ad-close-widget.closable {
+  cursor: pointer;
+  background: #f0c040;
+  color: #000;
+}
 </style>
 </head>
 <body>
+<div id="adCloseWidget" class="ad-close-widget" onclick="closeAdTab()">10</div>
 <div class="container">
   <div class="icon">🎁</div>
   <h1>TaskBot Miner</h1>
@@ -63,8 +87,35 @@ p { font-size: 14px; color: #aaa; margin-bottom: 30px; }
   <div class="note" id="note">The button will be activated when the timer runs out</div>
 </div>
 <script>
-// Redirige al smartlink inmediatamente en nueva pestaña
-window.open("https://omg10.com/4/11092522", "_blank");
+// Redirige al smartlink inmediatamente en nueva pestaña, guardando
+// la referencia para poder cerrarla después.
+const adWindow = window.open("https://omg10.com/4/11092522", "_blank");
+
+// Temporizador de 10s para la pestaña del anuncio. Al llegar a 0,
+// el círculo se convierte en una "✕" que el usuario puede pulsar
+// para cerrar esa pestaña.
+let adSeconds = 10;
+const adCloseWidget = document.getElementById("adCloseWidget");
+const adTimer = setInterval(() => {
+  adSeconds--;
+  if (adSeconds <= 0) {
+    clearInterval(adTimer);
+    adCloseWidget.textContent = "✕";
+    adCloseWidget.classList.add("closable");
+  } else {
+    adCloseWidget.textContent = adSeconds;
+  }
+}, 1000);
+
+function closeAdTab() {
+  // Solo actúa si ya pasó el temporizador (tiene la clase "closable")
+  // y si la ventana del anuncio sigue abierta.
+  if (!adCloseWidget.classList.contains("closable")) return;
+  if (adWindow && !adWindow.closed) {
+    adWindow.close();
+  }
+  adCloseWidget.style.display = "none";
+}
 // Cuenta regresiva
 let seconds = 10;
 const countdown = document.getElementById("countdown");
